@@ -2,14 +2,24 @@ module H2OConfigurator
 
   class Builder
 
-    def initialize
-      @host_dirs = Path.glob('/Users/*/Sites/*').reject { |p| p.extname == '.old' }
-      @etc_dir = Path.new('/usr/local/etc/h2o')
-      @log_dir = Path.new('/usr/local/var/log/h2o')
-      @config_file = @etc_dir / 'h2o.conf'
-      @mruby_handler_file = Path.new(__FILE__).dirname / 'mruby-handler.rb'
+    SitesDirGlob = '/Users/*/Sites/*'
+    H2OEtcDir = '/usr/local/etc/h2o'
+    H2OLogDir = '/usr/local/var/log/h2o'
+    H2OConfFile = 'h2o.conf'
+    MRubyHandlerFile = 'mruby-handler.rb'
+    ErrorLogFile = 'error.log'
+    DomainPrefixes = %w{www.}
+    DomainSuffixes = %w{.dev}
+
+    def initialize(make_dev: false)
+      @make_dev = make_dev
+      @host_dirs = Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' }
+      @etc_dir = Path.new(H2OEtcDir)
+      @log_dir = Path.new(H2OLogDir)
+      @config_file = @etc_dir / H2OConfFile
+      @mruby_handler_file = Path.new(__FILE__).dirname / MRubyHandlerFile
       raise "mruby_handler_file doesn't exist at #{@mruby_handler_file}" unless @mruby_handler_file.exist?
-      @error_file = @log_dir / 'error.log'
+      @error_file = @log_dir / ErrorLogFile
       @log_dir.mkpath
     end
 
@@ -32,16 +42,17 @@ module H2OConfigurator
     end
 
     def domains_for_host(host)
-      ['', 'www.'].map do |prefix|
-        ['', '.dev'].map do |suffix|
+      ([''] + DomainPrefixes).map do |prefix|
+        ([''] + (@make_dev ? DomainSuffixes : [])).map do |suffix|
           "#{prefix}#{host}#{suffix}"
         end
       end.flatten
     end
 
     def config_for_host(host, host_dir)
+      host_access_log = @log_dir / "#{host}.access.log"   #/
       {
-        'access-log' => (@log_dir / "#{host}.access.log").to_s,
+        'access-log' => host_access_log.to_s,
         'setenv' => { 'HOST_DIR' => host_dir.to_s },
         'paths' => {
           '/' => {
@@ -53,7 +64,7 @@ module H2OConfigurator
     end
 
     def dest_mruby_handler_file
-      @etc_dir / @mruby_handler_file.basename
+      @etc_dir / @mruby_handler_file.basename   #/
     end
 
     def write_config
