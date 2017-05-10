@@ -55,12 +55,30 @@ module H2OConfigurator
         'access-log' => host_access_log.to_s,
         'setenv' => { 'HOST_DIR' => host_dir.to_s },
         'paths' => {
-          '/' => {
-            'mruby.handler-file' => dest_mruby_handler_file.to_s,
-            'file.dir' => host_dir.to_s,
-          },
+          '/' => handlers_for_path('/', host_dir, host),
         },
       }
+    end
+
+    def handlers_for_path(path, host_dir, host)
+      handlers = []
+      htpasswd_file = host_dir / '.htpasswd'    #/
+      if htpasswd_file.exist?
+        handlers << {
+          'mruby.handler' => %Q{
+            require 'htpasswd'
+            Htpasswd.new('#{htpasswd_file}', '#{host}')
+          }.gsub(/\n\s+/, "\n").strip
+        }
+      end
+      handlers << {
+        'mruby.handler' => %Q{
+          require '#{dest_mruby_handler_file}'
+          H2OConfigurator::Handler.new
+        }.gsub(/\n\s+/, "\n").strip
+      }
+      handlers << { 'file.dir' => host_dir.to_s }
+      handlers
     end
 
     def dest_mruby_handler_file
