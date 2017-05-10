@@ -6,7 +6,8 @@ module H2OConfigurator
     H2OEtcDir = '/usr/local/etc/h2o'
     H2OLogDir = '/usr/local/var/log/h2o'
     H2OConfFile = 'h2o.conf'
-    MRubyHandlerFile = 'mruby-handler.rb'
+    AutoExtensionHandlerFile = 'auto-extension-handler.rb'
+    RedirectHandlerFile = 'redirect-handler.rb'
     ErrorLogFile = 'error.log'
     DomainPrefixes = %w{www.}
     DomainSuffixes = %w{.dev}
@@ -17,8 +18,8 @@ module H2OConfigurator
       @etc_dir = Path.new(H2OEtcDir)
       @log_dir = Path.new(H2OLogDir)
       @config_file = @etc_dir / H2OConfFile
-      @mruby_handler_file = Path.new(__FILE__).dirname / MRubyHandlerFile
-      raise "mruby_handler_file doesn't exist at #{@mruby_handler_file}" unless @mruby_handler_file.exist?
+      @auto_extension_handler_file = Path.new(__FILE__).dirname / AutoExtensionHandlerFile
+      @redirect_handler_file = Path.new(__FILE__).dirname / RedirectHandlerFile
       @error_file = @log_dir / ErrorLogFile
       @log_dir.mkpath
     end
@@ -73,20 +74,28 @@ module H2OConfigurator
       end
       handlers << {
         'mruby.handler' => %Q{
-          require '#{dest_mruby_handler_file}'
-          H2OConfigurator::Handler.new
+          require '#{dest_handler_file(@redirect_handler_file)}'
+          H2OConfigurator::RedirectHandler.new
+        }.gsub(/\n\s+/, "\n").strip
+      }
+      handlers << {
+        'mruby.handler' => %Q{
+          require '#{dest_handler_file(@auto_extension_handler_file)}'
+          H2OConfigurator::AutoExtensionHandler.new
         }.gsub(/\n\s+/, "\n").strip
       }
       handlers << { 'file.dir' => host_dir.to_s }
       handlers
     end
 
-    def dest_mruby_handler_file
-      @etc_dir / @mruby_handler_file.basename   #/
+    def dest_handler_file(handler_file)
+      @etc_dir / handler_file.basename
     end
 
     def write_config
-      @mruby_handler_file.copy(dest_mruby_handler_file)
+      [@redirect_handler_file, @auto_extension_handler_file].each do |handler_file|
+        handler_file.copy(dest_handler_file(handler_file))
+      end
       @config_file.write(YAML.dump(make_config))
       check_config
     end

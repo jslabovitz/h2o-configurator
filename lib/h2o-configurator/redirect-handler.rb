@@ -1,6 +1,6 @@
 module H2OConfigurator
 
-  class Handler
+  class RedirectHandler
 
     def call(env)
       host_dir = env['HOST_DIR']
@@ -10,10 +10,8 @@ module H2OConfigurator
         location, status = File.read(redirect_path).split(/\s+/, 2)
         status = status.to_i
         [status, {'location' => location}, []]
-      elsif path =~ %r{(/|\.\w+)$}
-        [399, {}, []]
       else
-        [307, {'x-reproxy-url' => path + '.html'}, []]
+        [399, {}, []]
       end
     end
 
