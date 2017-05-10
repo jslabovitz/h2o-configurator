@@ -20,5 +20,3 @@ module H2OConfigurator
   end
 
 end
-
-H2OConfigurator::Handler.new
