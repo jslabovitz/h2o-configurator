@@ -93,7 +93,7 @@ module H2OConfigurator
 
     def check_config
       system('h2o', '-t', '-c', @config_file.to_s)
-      exit($?) unless $? == 0
+      exit($?.to_i) unless $?.success?
     end
 
   end
