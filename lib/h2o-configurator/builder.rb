@@ -1,108 +1,189 @@
 module H2OConfigurator
 
+  SitesDirGlob = '/Users/*/Sites/*'
+  H2OEtcDir = Path.new('/usr/local/etc/h2o')
+  H2OLogDir = Path.new('/usr/local/var/log/h2o')
+  H2OConfFile = H2OEtcDir / 'h2o.conf'    #/
+  AutoExtensionHandlerFile = Path.new(__FILE__).dirname / 'auto-extension-handler.rb'   #/
+  RedirectHandlerFile = Path.new(__FILE__).dirname / 'redirect-handler.rb'    #/
+  InstalledAutoExtensionHandlerFile = H2OEtcDir / AutoExtensionHandlerFile.basename
+  InstalledRedirectHandlerFile = H2OEtcDir / RedirectHandlerFile.basename
+  ErrorLogFile = H2OLogDir / 'error.log'    #/
+  CertBaseDir = Path.new('/etc/letsencrypt/live')
+  # ;;CertBaseDir = Path.new('/tmp/etc/letsencrypt/live')
+  ServerCertificateFilename = 'fullchain.pem'
+  PrivateKeyFilename = 'privkey.pem'
+  DomainPrefixes = %w{www.}
+  DomainSuffixes = %w{.dev}
+
   class Builder
 
-    SitesDirGlob = '/Users/*/Sites/*'
-    H2OEtcDir = '/usr/local/etc/h2o'
-    H2OLogDir = '/usr/local/var/log/h2o'
-    H2OConfFile = 'h2o.conf'
-    AutoExtensionHandlerFile = 'auto-extension-handler.rb'
-    RedirectHandlerFile = 'redirect-handler.rb'
-    ErrorLogFile = 'error.log'
-    DomainPrefixes = %w{www.}
-    DomainSuffixes = %w{.dev}
-
-    def initialize(make_dev: false)
-      @make_dev = make_dev
-      @host_dirs = Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' }
-      @etc_dir = Path.new(H2OEtcDir)
-      @log_dir = Path.new(H2OLogDir)
-      @config_file = @etc_dir / H2OConfFile
-      @auto_extension_handler_file = Path.new(__FILE__).dirname / AutoExtensionHandlerFile
-      @redirect_handler_file = Path.new(__FILE__).dirname / RedirectHandlerFile
-      @error_file = @log_dir / ErrorLogFile
-      @log_dir.mkpath
+    def initialize
+      H2OLogDir.mkpath
     end
 
     def make_config
       config = {
         'compress' => 'ON',
         'reproxy' => 'ON',
-        'error-log' => @error_file.to_s,
-        'listen' => 80,
+        'error-log' => ErrorLogFile.to_s,
+        # 'listen' => 80,
         'hosts' => {},
       }
-      @host_dirs.each do |host_dir|
-        host = host_dir.basename.to_s
-        host_config = config_for_host(host, host_dir)
-        domains_for_host(host).each do |domain|
-          config['hosts'][domain] = host_config
+      Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' || p.extname == '.new' }.each do |site_dir|
+        site = Site.new(site_dir)
+        config['hosts'].merge!(site.make_config)
+      end
+      config
+    end
+
+    def write_config
+      RedirectHandlerFile.copy(InstalledRedirectHandlerFile)
+      AutoExtensionHandlerFile.copy(InstalledAutoExtensionHandlerFile)
+      H2OConfFile.write(YAML.dump(make_config))
+      check_config
+    end
+
+    def check_config
+      system('h2o', '-t', '-c', H2OConfFile.to_s)
+      exit($?.to_i) unless $?.success?
+    end
+
+  end
+
+  class Site
+
+    attr_accessor :dir
+    attr_accessor :name
+
+    def initialize(dir)
+      @dir = dir
+      @name = dir.basename.to_s
+    end
+
+    def make_config
+      config = {}
+      if cert_dir.exist?
+        https_redirect_host_config = make_https_redirect_host_config(80)
+        host_config = make_host_config(443)
+      else
+        https_redirect_host_config = nil
+        host_config = make_host_config(80)
+      end
+      domains.each do |domain|
+        if https_redirect_host_config
+          config["#{domain}:80"] = https_redirect_host_config
+          config["#{domain}:443"] = host_config
+        else
+          config["#{domain}:80"] = host_config
         end
       end
       config
     end
 
-    def domains_for_host(host)
+    def domains
       ([''] + DomainPrefixes).map do |prefix|
-        ([''] + (@make_dev ? DomainSuffixes : [])).map do |suffix|
-          "#{prefix}#{host}#{suffix}"
+        ([''] + DomainSuffixes).map do |suffix|
+          "#{prefix}#{@name}#{suffix}"
         end
       end.flatten
     end
 
-    def config_for_host(host, host_dir)
-      host_access_log = @log_dir / "#{host}.access.log"   #/
-      {
-        'access-log' => host_access_log.to_s,
-        'setenv' => { 'HOST_DIR' => host_dir.to_s },
-        'paths' => {
-          '/' => handlers_for_path('/', host_dir, host),
+    def make_host_config(port=80)
+      config = {
+        'listen' => {
+          'port' => port,
         },
+        'access-log' => access_log_file.to_s,
+        'setenv' => { 'HOST_DIR' => @dir.to_s },
+        'paths' => {
+          '/' => make_handlers,
+        },
+      }
+      if server_certificate_file.exist? && private_key_file.exist?
+        config['listen']['ssl'] = {
+          'certificate-file' => server_certificate_file.to_s,
+          'key-file' => private_key_file.to_s,
+        }
+      end
+      config
+    end
+
+    def make_https_redirect_host_config(port=80)
+      {
+        'listen' => port,
+        'paths' => {
+          '/' => {
+            'redirect' => "https://#{@name}",
+          }
+        }
       }
     end
 
-    def handlers_for_path(path, host_dir, host)
+    def make_handlers
       handlers = []
-      htpasswd_file = host_dir / '.htpasswd'    #/
       if htpasswd_file.exist?
-        handlers << {
-          'mruby.handler' => %Q{
+        handlers << RubyHandler.make(
+          %Q{
             require 'htpasswd'
-            Htpasswd.new('#{htpasswd_file}', '#{host}')
-          }.gsub(/\n\s+/, "\n").strip
-        }
+            Htpasswd.new('#{htpasswd_file}', '#{@name}')
+          }
+        )
       end
-      handlers << {
-        'mruby.handler' => %Q{
-          require '#{dest_handler_file(@redirect_handler_file)}'
+      handlers << RubyHandler.make(
+        %Q{
+          require '#{H2OConfigurator::InstalledRedirectHandlerFile}'
           H2OConfigurator::RedirectHandler.new
-        }.gsub(/\n\s+/, "\n").strip
-      }
-      handlers << {
-        'mruby.handler' => %Q{
-          require '#{dest_handler_file(@auto_extension_handler_file)}'
+        },
+      )
+      handlers << RubyHandler.make(
+        %Q{
+          require '#{H2OConfigurator::InstalledAutoExtensionHandlerFile}'
           H2OConfigurator::AutoExtensionHandler.new
-        }.gsub(/\n\s+/, "\n").strip
-      }
-      handlers << { 'file.dir' => host_dir.to_s }
+        }
+      )
+      handlers << FileDirHandler.make(@dir)
       handlers
     end
 
-    def dest_handler_file(handler_file)
-      @etc_dir / handler_file.basename
+    def cert_dir
+      H2OConfigurator::CertBaseDir / @name    #/
     end
 
-    def write_config
-      [@redirect_handler_file, @auto_extension_handler_file].each do |handler_file|
-        handler_file.copy(dest_handler_file(handler_file))
-      end
-      @config_file.write(YAML.dump(make_config))
-      check_config
+    def server_certificate_file
+      cert_dir / H2OConfigurator::ServerCertificateFilename
     end
 
-    def check_config
-      system('h2o', '-t', '-c', @config_file.to_s)
-      exit($?.to_i) unless $?.success?
+    def private_key_file
+      cert_dir / H2OConfigurator::PrivateKeyFilename
+    end
+
+    def htpasswd_file
+      @dir / '.htpasswd'    #/
+    end
+
+    def access_log_file
+      H2OConfigurator::H2OLogDir / "#{@name}.access.log"   #/
+    end
+
+  end
+
+  class RubyHandler
+
+    def self.make(code)
+      {
+        'mruby.handler' => code.gsub(/\n\s+/, "\n").strip,
+      }
+    end
+
+  end
+
+  class FileDirHandler
+
+    def self.make(dir)
+      {
+        'file.dir' => dir.to_s,
+      }
     end
 
   end

@@ -2,6 +2,6 @@
 
 require 'h2o-configurator'
 
-configurator = H2OConfigurator::Builder.new(make_dev: ARGV.first == '-d')
+configurator = H2OConfigurator::Builder.new
 configurator.write_config
 configurator.check_config
