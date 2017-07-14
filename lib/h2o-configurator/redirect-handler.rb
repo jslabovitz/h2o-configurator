@@ -10,6 +10,8 @@ module H2OConfigurator
         location, status = File.read(redirect_path).split(/\s+/, 2)
         status = status.to_i
         [status, {'location' => location}, []]
+      elsif path !~ %r{/$} && File.directory?(host_dir + path)
+        [302, {'location' => path + '/'}, []]
       else
         [399, {}, []]
       end
