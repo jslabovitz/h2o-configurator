@@ -10,7 +10,6 @@ module H2OConfigurator
   InstalledRedirectHandlerFile = H2OEtcDir / RedirectHandlerFile.basename
   ErrorLogFile = H2OLogDir / 'error.log'    #/
   CertBaseDir = Path.new('/etc/letsencrypt/live')
-  # ;;CertBaseDir = Path.new('/tmp/etc/letsencrypt/live')
   ServerCertificateFilename = 'fullchain.pem'
   PrivateKeyFilename = 'privkey.pem'
   DomainPrefixes = %w{www.}
