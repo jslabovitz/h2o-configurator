@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'h2o-configurator'
-  spec.version       = '0.1'
+  spec.version       = '0.2'
   spec.authors       = ['John Labovitz']
   spec.email         = ['johnl@johnlabovitz.com']
 
