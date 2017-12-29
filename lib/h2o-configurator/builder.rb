@@ -13,7 +13,7 @@ module H2OConfigurator
   ServerCertificateFilename = 'fullchain.pem'
   PrivateKeyFilename = 'privkey.pem'
   DomainPrefixes = %w{www.}
-  DomainSuffixes = %w{.dev}
+  DomainSuffixes = %w{.test}
 
   class Builder
 
