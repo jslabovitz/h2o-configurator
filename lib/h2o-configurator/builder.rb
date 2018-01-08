@@ -26,7 +26,6 @@ module H2OConfigurator
         'compress' => 'ON',
         'reproxy' => 'ON',
         'error-log' => ErrorLogFile.to_s,
-        # 'listen' => 80,
         'hosts' => {},
       }
       Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' || p.extname == '.new' }.each do |site_dir|
