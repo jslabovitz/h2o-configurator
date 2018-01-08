@@ -3,12 +3,12 @@ module H2OConfigurator
   SitesDirGlob = '/Users/*/Sites/*'
   H2OEtcDir = Path.new('/usr/local/etc/h2o')
   H2OLogDir = Path.new('/usr/local/var/log/h2o')
-  H2OConfFile = H2OEtcDir / 'h2o.conf'    #/
-  AutoExtensionHandlerFile = Path.new(__FILE__).dirname / 'auto-extension-handler.rb'   #/
-  RedirectHandlerFile = Path.new(__FILE__).dirname / 'redirect-handler.rb'    #/
+  H2OConfFile = H2OEtcDir / 'h2o.conf'
+  AutoExtensionHandlerFile = Path.new(__FILE__).dirname / 'auto-extension-handler.rb'
+  RedirectHandlerFile = Path.new(__FILE__).dirname / 'redirect-handler.rb'
   InstalledAutoExtensionHandlerFile = H2OEtcDir / AutoExtensionHandlerFile.basename
   InstalledRedirectHandlerFile = H2OEtcDir / RedirectHandlerFile.basename
-  ErrorLogFile = H2OLogDir / 'error.log'    #/
+  ErrorLogFile = H2OLogDir / 'error.log'
   CertBaseDir = Path.new('/etc/letsencrypt/live')
   ServerCertificateFilename = 'fullchain.pem'
   PrivateKeyFilename = 'privkey.pem'
@@ -146,7 +146,7 @@ module H2OConfigurator
     end
 
     def cert_dir
-      H2OConfigurator::CertBaseDir / @name    #/
+      H2OConfigurator::CertBaseDir / @name
     end
 
     def server_certificate_file
@@ -158,11 +158,11 @@ module H2OConfigurator
     end
 
     def htpasswd_file
-      @dir / '.htpasswd'    #/
+      @dir / '.htpasswd'
     end
 
     def access_log_file
-      H2OConfigurator::H2OLogDir / "#{@name}.access.log"   #/
+      H2OConfigurator::H2OLogDir / "#{@name}.access.log"
     end
 
   end
