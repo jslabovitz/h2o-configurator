@@ -1,8 +1,10 @@
 # coding: utf-8
 
+require_relative 'lib/h2o-configurator/version'
+
 Gem::Specification.new do |spec|
   spec.name          = 'h2o-configurator'
-  spec.version       = '0.2'
+  spec.version       = H2OConfigurator::VERSION
   spec.authors       = ['John Labovitz']
   spec.email         = ['johnl@johnlabovitz.com']
 
@@ -18,8 +20,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'path'
+  spec.add_dependency 'path', '~> 0'
 
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'rake', '~> 0'
 end
