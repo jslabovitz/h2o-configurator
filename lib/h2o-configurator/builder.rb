@@ -15,7 +15,7 @@ module H2OConfigurator
   DomainPrefixes = %w{www.}
   DomainSuffixes = %w{.test}
 
-  class Builder
+  class Error < Exception; end
 
   class Builder
 
@@ -45,7 +45,7 @@ module H2OConfigurator
 
     def check_config
       system('h2o', '-t', '-c', H2OConfFile.to_s)
-      exit($?.to_i) unless $?.success?
+      raise Error, "h2o check failed: status #{$?.to_i}" unless $?.success?
     end
 
   end
