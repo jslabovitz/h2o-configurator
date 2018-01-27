@@ -95,6 +95,18 @@ module H2OConfigurator
       handlers
     end
 
+    def make_ruby_handler(code)
+      {
+        'mruby.handler' => code.gsub(/\n\s+/, "\n").strip,
+      }
+    end
+
+    def make_file_dir_handler(dir)
+      {
+        'file.dir' => dir.to_s,
+      }
+    end
+
     def cert_dir
       H2OConfigurator::CertBaseDir / @name
     end
@@ -113,18 +125,6 @@ module H2OConfigurator
 
     def access_log_file
       H2OConfigurator::H2OLogDir / "#{@name}.access.log"
-    end
-
-    def make_ruby_handler(code)
-      {
-        'mruby.handler' => code.gsub(/\n\s+/, "\n").strip,
-      }
-    end
-
-    def make_file_dir_handler(dir)
-      {
-        'file.dir' => dir.to_s,
-      }
     end
 
   end
