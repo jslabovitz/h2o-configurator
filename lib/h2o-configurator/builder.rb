@@ -35,10 +35,10 @@ module H2OConfigurator
     end
 
     def write_config
-      tmp = Path.tmpfile
-      tmp.write(YAML.dump(make_config))
-      check_config
-      tmp.cp(H2OConfFile)
+      new_file = H2OConfFile.add_extension('.new')
+      new_file.write(YAML.dump(make_config))
+      check_config(new_file)
+      new_file.mv(H2OConfFile)
       RedirectHandlerFile.copy(InstalledRedirectHandlerFile)
       AutoExtensionHandlerFile.copy(InstalledAutoExtensionHandlerFile)
       H2OLogDir.mkpath
