@@ -11,10 +11,12 @@ module H2OConfigurator
   H2OEtcDir = Path.new('/usr/local/etc/h2o')
   H2OLogDir = Path.new('/usr/local/var/log/h2o')
   H2OConfFile = H2OEtcDir / 'h2o.conf'
-  AutoExtensionHandlerFile = Path.new(__FILE__).dirname / 'h2o-configurator' / 'auto-extension-handler.rb'
-  RedirectHandlerFile = Path.new(__FILE__).dirname / 'h2o-configurator' / 'redirect-handler.rb'
-  InstalledAutoExtensionHandlerFile = H2OEtcDir / AutoExtensionHandlerFile.basename
-  InstalledRedirectHandlerFile = H2OEtcDir / RedirectHandlerFile.basename
+  HandlersDir = Path.new(__FILE__).dirname / 'h2o-configurator' / 'handlers'
+  InstalledHandlersDir = H2OEtcDir / 'handlers'
+  Handlers = {
+    'AutoExtensionHandler'  => 'auto-extension.rb',
+    'RedirectHandler'       => 'redirect.rb',
+  }
   ErrorLogFile = H2OLogDir / 'error.log'
   CertBaseDir = Path.new('/etc/letsencrypt/live')
   ServerCertificateFilename = 'fullchain.pem'

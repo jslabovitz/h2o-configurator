@@ -18,13 +18,11 @@ module H2OConfigurator
     end
 
     def write_config
-      new_file = H2OConfFile.add_extension('.new')
-      new_file.write(YAML.dump(make_config))
-      check_config(new_file)
-      new_file.mv(H2OConfFile)
-      RedirectHandlerFile.copy(InstalledRedirectHandlerFile)
-      AutoExtensionHandlerFile.copy(InstalledAutoExtensionHandlerFile)
+      H2OConfFile.write(YAML.dump(make_config))
+      InstalledHandlersDir.rmtree if InstalledHandlersDir.exist?
+      HandlersDir.cp_r(InstalledHandlersDir)
       H2OLogDir.mkpath
+      check_config(H2OConfFile)
     end
 
     def check_config(file)

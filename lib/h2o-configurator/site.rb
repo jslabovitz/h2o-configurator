@@ -79,18 +79,8 @@ module H2OConfigurator
           }
         )
       end
-      handlers << make_ruby_handler(
-        %Q{
-          require '#{H2OConfigurator::InstalledRedirectHandlerFile}'
-          H2OConfigurator::RedirectHandler.new
-        },
-      )
-      handlers << make_ruby_handler(
-        %Q{
-          require '#{H2OConfigurator::InstalledAutoExtensionHandlerFile}'
-          H2OConfigurator::AutoExtensionHandler.new
-        }
-      )
+      handlers << make_ruby_external_handler('RedirectHandler')
+      handlers << make_ruby_external_handler('AutoExtensionHandler')
       handlers << make_file_dir_handler(@dir)
       handlers
     end
@@ -98,6 +88,14 @@ module H2OConfigurator
     def make_ruby_handler(code)
       {
         'mruby.handler' => code.gsub(/\n\s+/, "\n").strip,
+      }
+    end
+
+    def make_ruby_external_handler(klass)
+      file = InstalledHandlersDir / H2OConfigurator::Handlers[klass]
+      make_ruby_handler %Q{
+        require '#{file}'
+        H2OConfigurator::#{klass}.new
       }
     end
 
