@@ -72,26 +72,26 @@ module H2OConfigurator
     def make_handlers
       handlers = []
       if htpasswd_file.exist?
-        handlers << RubyHandler.make(
+        handlers << make_ruby_handler(
           %Q{
             require 'htpasswd'
             Htpasswd.new('#{htpasswd_file}', '#{@name}')
           }
         )
       end
-      handlers << RubyHandler.make(
+      handlers << make_ruby_handler(
         %Q{
           require '#{H2OConfigurator::InstalledRedirectHandlerFile}'
           H2OConfigurator::RedirectHandler.new
         },
       )
-      handlers << RubyHandler.make(
+      handlers << make_ruby_handler(
         %Q{
           require '#{H2OConfigurator::InstalledAutoExtensionHandlerFile}'
           H2OConfigurator::AutoExtensionHandler.new
         }
       )
-      handlers << FileDirHandler.make(@dir)
+      handlers << make_file_dir_handler(@dir)
       handlers
     end
 
@@ -115,21 +115,13 @@ module H2OConfigurator
       H2OConfigurator::H2OLogDir / "#{@name}.access.log"
     end
 
-  end
-
-  class RubyHandler
-
-    def self.make(code)
+    def make_ruby_handler(code)
       {
         'mruby.handler' => code.gsub(/\n\s+/, "\n").strip,
       }
     end
 
-  end
-
-  class FileDirHandler
-
-    def self.make(dir)
+    def make_file_dir_handler(dir)
       {
         'file.dir' => dir.to_s,
       }
