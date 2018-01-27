@@ -38,7 +38,7 @@ module H2OConfigurator
       end.flatten
     end
 
-    def make_host_config(port=80)
+    def make_host_config(port)
       config = {
         'listen' => {
           'port' => port,
@@ -58,7 +58,7 @@ module H2OConfigurator
       config
     end
 
-    def make_https_redirect_host_config(port=80)
+    def make_https_redirect_host_config(port)
       {
         'listen' => port,
         'paths' => {
