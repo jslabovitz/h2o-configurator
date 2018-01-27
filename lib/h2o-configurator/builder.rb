@@ -28,6 +28,7 @@ module H2OConfigurator
       }
       Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' || p.extname == '.new' }.each do |site_dir|
         site = Site.new(site_dir)
+        puts "%30s => %s" % [site.name, site.dir]
         config['hosts'].merge!(site.make_config)
       end
       config
