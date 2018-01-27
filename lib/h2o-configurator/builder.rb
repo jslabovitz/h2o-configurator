@@ -44,8 +44,8 @@ module H2OConfigurator
       H2OLogDir.mkpath
     end
 
-    def check_config
-      system('h2o', '-t', '-c', H2OConfFile.to_s)
+    def check_config(file)
+      system('h2o', '--mode=test', '--conf', file.to_s)
       raise Error, "h2o check failed: status #{$?.to_i}" unless $?.success?
     end
 
