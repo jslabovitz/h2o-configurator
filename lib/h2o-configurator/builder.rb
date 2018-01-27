@@ -17,9 +17,7 @@ module H2OConfigurator
 
   class Builder
 
-    def initialize
-      H2OLogDir.mkpath
-    end
+  class Builder
 
     def make_config
       config = {
@@ -36,10 +34,13 @@ module H2OConfigurator
     end
 
     def write_config
+      tmp = Path.tmpfile
+      tmp.write(YAML.dump(make_config))
+      check_config
+      tmp.cp(H2OConfFile)
       RedirectHandlerFile.copy(InstalledRedirectHandlerFile)
       AutoExtensionHandlerFile.copy(InstalledAutoExtensionHandlerFile)
-      H2OConfFile.write(YAML.dump(make_config))
-      check_config
+      H2OLogDir.mkpath
     end
 
     def check_config
