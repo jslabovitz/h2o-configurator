@@ -7,4 +7,5 @@ begin
   configurator.write_config
 rescue H2OConfigurator::Error => e
   warn "Failed to write configuration: #{e}"
+  exit(1)
 end
