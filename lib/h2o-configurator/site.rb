@@ -11,21 +11,16 @@ module H2OConfigurator
     end
 
     def make_config
-      config = {}
       if cert_dir.exist?
-        https_redirect_host_config = make_https_redirect_host_config(80)
-        host_config = make_host_config(443)
+        {
+          "#{@name}:80" => make_https_redirect_host_config(80),
+          "#{@name}:443" => make_host_config(443),
+        }
       else
-        https_redirect_host_config = nil
-        host_config = make_host_config(80)
+        {
+          "#{@name}:80" => make_host_config(80),
+        }
       end
-      if https_redirect_host_config
-        config["#{@name}:80"] = https_redirect_host_config
-        config["#{@name}:443"] = host_config
-      else
-        config["#{@name}:80"] = host_config
-      end
-      config
     end
 
     def make_host_config(port)
