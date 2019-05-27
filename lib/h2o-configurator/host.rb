@@ -13,12 +13,12 @@ module H2OConfigurator
     def make_config
       if cert_dir.exist?
         {
-          "#{@name}:80" => make_https_redirect_host_config(80),
-          "#{@name}:443" => make_host_config(443),
+          "*.#{@name}:80" => make_https_redirect_host_config(80),
+          "*.#{@name}:443" => make_host_config(443),
         }
       else
         {
-          "#{@name}:80" => make_host_config(80),
+          "*.#{@name}:80" => make_host_config(80),
         }
       end
     end
