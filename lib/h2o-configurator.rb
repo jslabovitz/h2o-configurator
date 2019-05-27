@@ -2,7 +2,7 @@ require 'path'
 require 'yaml'
 
 require 'h2o-configurator/builder'
-require 'h2o-configurator/site'
+require 'h2o-configurator/host'
 require 'h2o-configurator/version'
 
 module H2OConfigurator

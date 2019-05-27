@@ -1,6 +1,6 @@
 module H2OConfigurator
 
-  class Site
+  class Host
 
     attr_accessor :dir
     attr_accessor :name
