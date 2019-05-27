@@ -9,7 +9,7 @@ module H2OConfigurator
         'error-log' => ErrorLogFile.to_s,
         'hosts' => {},
       }
-      Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' || p.extname == '.new' }.each do |site_dir|
+      Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' || p.extname == '.new' }.sort.each do |site_dir|
         site = Site.new(site_dir)
         puts "%30s => %s" % [site.name, site.dir]
         config['hosts'].merge!(site.make_config)
