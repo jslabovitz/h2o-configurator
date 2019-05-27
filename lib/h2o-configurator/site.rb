@@ -19,23 +19,13 @@ module H2OConfigurator
         https_redirect_host_config = nil
         host_config = make_host_config(80)
       end
-      domains.each do |domain|
-        if https_redirect_host_config
-          config["#{domain}:80"] = https_redirect_host_config
-          config["#{domain}:443"] = host_config
-        else
-          config["#{domain}:80"] = host_config
-        end
+      if https_redirect_host_config
+        config["#{@name}:80"] = https_redirect_host_config
+        config["#{@name}:443"] = host_config
+      else
+        config["#{@name}:80"] = host_config
       end
       config
-    end
-
-    def domains
-      ([''] + DomainPrefixes).map do |prefix|
-        ([''] + DomainSuffixes).map do |suffix|
-          "#{prefix}#{@name}#{suffix}"
-        end
-      end.flatten
     end
 
     def make_host_config(port)

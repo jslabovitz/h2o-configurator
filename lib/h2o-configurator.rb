@@ -21,8 +21,6 @@ module H2OConfigurator
   CertBaseDir = Path.new('/etc/letsencrypt/live')
   ServerCertificateFilename = 'fullchain.pem'
   PrivateKeyFilename = 'privkey.pem'
-  DomainPrefixes = %w{www.}
-  DomainSuffixes = %w{.test}
 
   class Error < Exception; end
 
