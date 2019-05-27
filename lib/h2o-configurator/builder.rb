@@ -2,14 +2,20 @@ module H2OConfigurator
 
   class Builder
 
+    def initialize(site_dirs=nil)
+      @site_dirs = site_dirs ? site_dirs.map { |p| Path.new(p) } : Path.glob(SitesDirGlob)
+    end
+
     def make_config
+      @site_dirs.reject! { |p| p.extname == '.old' || p.extname == '.new' }
+      raise "No sites defined" if @site_dirs.empty?
       config = {
         'compress' => 'ON',
         'reproxy' => 'ON',
         'error-log' => ErrorLogFile.to_s,
         'hosts' => {},
       }
-      Path.glob(SitesDirGlob).reject { |p| p.extname == '.old' || p.extname == '.new' }.sort.each do |dir|
+      @site_dirs.sort.each do |dir|
         host = Host.new(dir)
         puts "%30s => %s" % [host.name, host.dir]
         config['hosts'].merge!(host.make_config)

@@ -2,7 +2,7 @@
 
 require 'h2o-configurator'
 
-configurator = H2OConfigurator::Builder.new
+configurator = H2OConfigurator::Builder.new(ARGV.empty? ? nil : ARGV)
 begin
   configurator.write_config
 rescue H2OConfigurator::Error => e
