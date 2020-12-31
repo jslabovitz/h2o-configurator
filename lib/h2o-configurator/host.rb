@@ -31,15 +31,19 @@ module H2OConfigurator
 
     def make_host_config(port)
       config = {
-        'listen' => {
-          'port' => port,
-        },
+        'listen' => { 'port' => port },
         'access-log' => access_log_file.to_s,
         'setenv' => { 'HOST_DIR' => @dir.to_s },
-        'paths' => {
-          '/' => make_handlers,
-        },
       }
+      if proxy_reverse_url_file.exist?
+        config['paths'] = {
+          '/' => { 'proxy.reverse.url' => proxy_reverse_url_file.read.chomp }
+        }
+      else
+        config['paths'] = {
+          '/' => make_handlers
+        }
+      end
       if server_certificate_file.exist? && private_key_file.exist?
         config['listen']['ssl'] = {
           'certificate-file' => server_certificate_file.to_s,
@@ -110,6 +114,10 @@ module H2OConfigurator
 
     def htpasswd_file
       @dir / '.htpasswd'
+    end
+
+    def proxy_reverse_url_file
+      @dir / '.proxy-reverse-url'
     end
 
     def access_log_file
