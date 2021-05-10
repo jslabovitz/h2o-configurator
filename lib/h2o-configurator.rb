@@ -8,8 +8,9 @@ require 'h2o-configurator/version'
 module H2OConfigurator
 
   SitesDirGlob = '/Users/*/Sites/*'
-  H2OEtcDir = Path.new('/usr/local/etc/h2o')
-  H2OLogDir = Path.new('/usr/local/var/log/h2o')
+  RootDir = Path.new(ENV['HOMEBREW_PREFIX'] || '/usr/local')
+  H2OEtcDir = RootDir / 'etc/h2o'
+  H2OLogDir = RootDir / 'var/log/h2o'
   H2OConfFile = H2OEtcDir / 'h2o.conf'
   HandlersDir = Path.new(__FILE__).dirname / 'h2o-configurator' / 'handlers'
   InstalledHandlersDir = H2OEtcDir / 'handlers'
