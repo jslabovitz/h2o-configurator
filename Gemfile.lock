@@ -8,14 +8,15 @@ GEM
   remote: https://rubygems.org/
   specs:
     path (2.0.1)
-    rake (0.9.6)
+    rake (13.0.3)
 
 PLATFORMS
+  arm64-darwin-20
   x86_64-darwin-18
 
 DEPENDENCIES
   h2o-configurator!
-  rake (~> 0)
+  rake (~> 13.0)
 
 BUNDLED WITH
-   2.2.3
+   2.2.17
