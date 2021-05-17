@@ -11,7 +11,7 @@ module H2OConfigurator
     end
 
     def make_config
-      if cert_dir.exist?
+      if secure?
         config_http = make_https_redirect_host_config(80)
         config_https = make_host_config(443)
         {
@@ -100,16 +100,16 @@ module H2OConfigurator
       }
     end
 
-    def cert_dir
-      H2OConfigurator::CertBaseDir / @name
+    def secure?
+      server_certificate_file.exist? && private_key_file.exist?
     end
 
     def server_certificate_file
-      cert_dir / H2OConfigurator::ServerCertificateFilename
+      (H2OConfigurator::CertificatesBaseDir / @name).add_extension('.pem')
     end
 
     def private_key_file
-      cert_dir / H2OConfigurator::PrivateKeyFilename
+      (H2OConfigurator::CertificatesBaseDir / @name).add_extension('.key')
     end
 
     def htpasswd_file

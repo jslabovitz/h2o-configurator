@@ -19,9 +19,7 @@ module H2OConfigurator
     'RedirectHandler'       => 'redirect.rb',
   }
   ErrorLogFile = H2OLogDir / 'error.log'
-  CertBaseDir = Path.new('/etc/letsencrypt/live')
-  ServerCertificateFilename = 'fullchain.pem'
-  PrivateKeyFilename = 'privkey.pem'
+  CertificatesBaseDir = H2OEtcDir / 'certificates'
 
   class Error < Exception; end
 
