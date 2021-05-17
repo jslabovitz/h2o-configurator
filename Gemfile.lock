@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    h2o-configurator (0.6)
+    h2o-configurator (0.8)
       path (~> 2.0)
 
 GEM
