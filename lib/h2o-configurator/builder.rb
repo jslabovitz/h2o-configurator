@@ -15,7 +15,7 @@ module H2OConfigurator
         'error-log' => ErrorLogFile.to_s,
         'hosts' => {},
       }
-      @site_dirs.sort.each do |dir|
+      @site_dirs.sort { |a, b| compare_domains(a.basename.to_s, b.basename.to_s) }.each do |dir|
         host = Host.new(dir)
         puts "%30s => %s" % [host.name, host.dir]
         config['hosts'].merge!(host.make_config)
@@ -34,6 +34,27 @@ module H2OConfigurator
     def check_config(file)
       system('h2o', '--mode=test', '--conf', file.to_s)
       raise Error, "h2o check failed: status #{$?.to_i}" unless $?.success?
+    end
+
+    def compare_domains(d1, d2)
+      if d1 == d2
+        0
+      else
+        compare_subdomains(d1.split('.').reverse, d2.split('.').reverse)
+      end
+    end
+
+    def compare_subdomains(d1, d2)
+      s1, s2 = d1.first, s2 = d2.first
+      if s1 && !s2
+        -1
+      elsif !s1 && s2
+        1
+      elsif (r = s1 <=> s2) == 0
+        compare_subdomains(d1[1..-1], d2[1..-1])
+      else
+        r
+      end
     end
 
   end
