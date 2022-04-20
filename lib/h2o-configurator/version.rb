@@ -1,5 +1,5 @@
 module H2OConfigurator
 
-  VERSION = '0.9'
+  VERSION = '0.10'
 
 end
