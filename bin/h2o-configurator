@@ -2,9 +2,17 @@
 
 require 'h2o-configurator'
 
-configurator = H2OConfigurator::Builder.new(ARGV.empty? ? nil : ARGV)
+if ARGV.first == '--no-install'
+  ARGV.shift
+  install = false
+else
+  install = true
+end
+
+configurator = H2OConfigurator::Builder.new(*ARGV)
+
 begin
-  configurator.write_config
+  configurator.write_config(install: install)
 rescue H2OConfigurator::Error => e
   warn "Failed to write configuration: #{e}"
   exit(1)

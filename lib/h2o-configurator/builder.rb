@@ -2,8 +2,8 @@ module H2OConfigurator
 
   class Builder
 
-    def initialize(site_dirs=nil)
-      @site_dirs = site_dirs ? site_dirs.map { |p| Path.new(p).expand_path } : SitesDir.glob('*')
+    def initialize(*site_dirs)
+      @site_dirs = site_dirs.empty? ? SitesDir.glob('*') : site_dirs.map { |p| Path.new(p).expand_path }
     end
 
     def make_config
@@ -23,12 +23,25 @@ module H2OConfigurator
       config
     end
 
-    def write_config
-      H2OConfFile.write(YAML.dump(make_config))
-      InstalledHandlersDir.rmtree if InstalledHandlersDir.exist?
-      HandlersDir.cp_r(InstalledHandlersDir)
-      H2OLogDir.mkpath
-      check_config(H2OConfFile)
+    def write_config(install: true)
+      config_yaml = YAML.dump(make_config)
+      if install
+        H2OConfFile.write(config_yaml)
+        InstalledHandlersDir.rmtree if InstalledHandlersDir.exist?
+        HandlersDir.cp_r(InstalledHandlersDir)
+        H2OLogDir.mkpath
+        check_config(H2OConfFile)
+      else
+        config_file = Path.new('/tmp') / H2OConfFile.base
+        config_file.write(config_yaml)
+        puts "\# config file written to #{config_file}"
+        puts "\# run the following in your shell:"
+        puts "sudo cp #{config_file} #{H2OConfFile.dir}"
+        puts "sudo rm -rf #{InstalledHandlersDir}"
+        puts "sudo cp -r #{HandlersDir} #{InstalledHandlersDir.dir}"
+        puts "h2o --mode=test --conf #{H2OConfFile}"
+        puts "\# restart the h2o server"
+      end
     end
 
     def check_config(file)
