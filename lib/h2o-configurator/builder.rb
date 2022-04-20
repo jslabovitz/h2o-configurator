@@ -3,7 +3,7 @@ module H2OConfigurator
   class Builder
 
     def initialize(site_dirs=nil)
-      @site_dirs = site_dirs ? site_dirs.map { |p| Path.new(p) } : Path.glob(SitesDirGlob)
+      @site_dirs = site_dirs ? site_dirs.map { |p| Path.new(p).expand_path } : SitesDir.glob('*')
     end
 
     def make_config

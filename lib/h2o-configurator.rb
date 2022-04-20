@@ -7,7 +7,7 @@ require 'h2o-configurator/version'
 
 module H2OConfigurator
 
-  SitesDirGlob = '/Users/*/Sites/*'
+  SitesDir = Path.new('~/Sites')
   RootDir = Path.new(ENV['HOMEBREW_PREFIX'] || '/usr/local')
   H2OEtcDir = RootDir / 'etc/h2o'
   H2OLogDir = RootDir / 'var/log/h2o'
